@@ -1,0 +1,10 @@
+{
+  "scripts": {
+    "predeploy": "npm run build",
+    "deploy": "gh-pages -d build"
+  },
+  "dependencies": {
+    "gh-pages": "^5.0.0"
+  },
+  "homepage": "https://daeb2a.github.io/calcultor-for-electricity/"
+}
