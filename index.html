@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>전기요금 검증</title>
+  <link rel="icon" href="./favicon-myenergy.ico" type="image/x-icon">
+</head>
+<body style="margin: 20px;">
+  <div style="display: flex; flex-direction: column;">
+    <label for="yyyymm">
+      <span>청구연월</span>
+      <input style="color: #1f1f1f" id="yyyymm" type="number" minlength="6" value="202303"/>
+    </label>
+    <label for="meterDate">
+      <span>검침일</span>
+      <input style="color: #1f1f1f" id="meterDate" type="number" placeholder="5" value="5" />
+    </label>
+    <label for="contractType">
+      <span>저압고압</span>
+      <select style="color: #1f1f1f" id="contractType">
+        <option value="low" selected>저압</option>
+        <option value="high">고압</option>
+      </select>
+    </label>
+    <label for="kWh">
+      <span>전력소비량</span>
+      <input style="color: #0067ed" id="kWh" type="number" value="420" />
+    </label>
+    <label for="backward-calculation">
+      <span>전력량요금(역산)</span>
+      <input style="color: #db0b00" id="backward-calculation" type="number" />
+    </label>
+    <div style="display: flex; gap: 20px;">
+      <button style="width: calc(50% - 10px); font-size: 16px; margin-top: 10px; padding: 10px;" onclick="getValue1()">계산</button>
+      <button style="width: calc(50% - 10px); font-size: 16px; margin-top: 10px; padding: 10px;" onclick="getValue2()">역산</button>
+    </div>
+  </div>
+  <div style="margin-top: 10px;">
+    <label>기본요금</label>
+    <span style="color: #0067ed" id="demand-charge"></span>
+  </div>
+  <hr />
+  <div>
+    <label>전력량요금</label>
+    <span style="color: #0067ed" id="energy-charge"></span>
+  </div>
+  <span style="font-size: 14px; color: #777777;">청구연월 201701부터 반영 [2016.12 누진 3단계 적용]</span>
+  <hr />
+  <div>
+    <label>기후환경요금</label>
+    <span style="color: #0067ed" id="climate-charge"></span>
+  </div>
+  <span style="font-size: 14px; color: #777777;">청구연월 202102부터 반영</span>
+  <hr />
+  <div>
+    <label>연료비조정요금</label>
+    <span style="color: #0067ed" id="fuel-charge"></span>
+  </div>
+  <span style="font-size: 14px; color: #777777;">청구연월 202101부터 반영</span>
+  <hr />
+  <div>
+    <label>전기요금</label>
+    <span style="color: #0067ed" id="elec-charge"></span>
+  </div>
+  <hr />
+  <div>
+    <label>전력소비량(역산)</label>
+    <span style="color: #db0b00" id="energy-charge-backward"></span>
+  </div>
+  <span style="font-size: 14px; color: #777777;">부가세, 전력기금, 보장공제(해당기간) 제외</span>
+  <p style="margin-top: 10px; border-radius: 10px; background-color: #eeeeee; padding: 15px 20px; font-size: 14px; line-height: 1.5;">
+    · 청구연월 201612 말일검침(30일)부터 계산 가능
+    <br /> 
+    · 검침일 1일 + 청구연월 202302 : 사용기간 23년 1월 1일 ~ 1월 31일
+    <br />
+    · 검침일 30일 + 청구연월 202301 : 사용기간 23년 1월 1일 ~ 1월 31일
+    <br />
+    · 검침일 26일 + 청구연월 202302 : 사용기간 23년 1월 26일 ~ 2월 25일
+    <br />
+    · (230519) 전력량요금으로 전력소비량 역산 구현
+    <br />
+    · (230607) 230516~230531 월중 전력량요금 상승에 따른 값 보정 완료 (오차 0~5원)
+    <br />
+    · (230607) 230516~230531 포함된 전력량요금에 대한 역산 보정은 미적용
+  </p>
+</body>
+<script>
+  const [result1, result2, result3, result4, result5, result6] = [
+    document.getElementById('demand-charge'),
+    document.getElementById('energy-charge'),
+    document.getElementById('climate-charge'),
+    document.getElementById('fuel-charge'),
+    document.getElementById('elec-charge'),
+    document.getElementById('energy-charge-backward'),
+  ]
+  function getResult(yyyymm, meterDate, contractType, kWh, energyCharge) {
+    if(energyCharge == 0) {
+      result1.innerText = calcDemandCharge(yyyymm, meterDate, contractType, kWh).toLocaleString('ko-kr') + "원";
+      result2.innerText = calcEnergyCharge(yyyymm, meterDate, contractType, kWh).toLocaleString('ko-kr') + "원";
+      result3.innerText = calcClimateCharge(yyyymm, meterDate, kWh).toLocaleString('ko-kr') + "원";
+      result4.innerText = calcFuelCharge(yyyymm, meterDate, kWh).toLocaleString('ko-kr') + "원";
+      result5.innerText = calcElecCharge(yyyymm, meterDate, contractType, kWh).toLocaleString('ko-kr') + "원";
+    } else if(kWh == 0) {
+      result6.innerText = calcConsumption(yyyymm, meterDate, contractType, energyCharge).toLocaleString('ko-kr') + "㎾h";
+    }
+  }
+  let [val1, val2, val3, val4] = [1, 2, 3, 4, 5];
+
+  function getValue1() {
+    val1 = document.getElementById('yyyymm').value;
+    val2 = document.getElementById('meterDate').value;
+    val3 = document.getElementById('contractType').value;
+    val4 = document.getElementById('kWh').value;
+    val5 = document.getElementById('backward-calculation').value;
+    getResult(val1, val2, val3, val4, val5 = 0);
+  }
+
+  function getValue2() {
+    val1 = document.getElementById('yyyymm').value;
+    val2 = document.getElementById('meterDate').value;
+    val3 = document.getElementById('contractType').value;
+    val4 = document.getElementById('kWh').value;
+    val5 = document.getElementById('backward-calculation').value;
+    getResult(val1, val2, val3, val4 = 0, val5);
+  }
+</script>
+<script src="./calc-elec.js"></script>
+</html>
