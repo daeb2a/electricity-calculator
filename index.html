@@ -4,10 +4,19 @@
   <meta charset="UTF-8">
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>전기요금 계산기</title>
+  <title>전기요금 계산기 [주택용]</title>
   <link rel="icon" href="./favicon-myenergy.ico" type="image/x-icon">
 </head>
 <body style="margin: 20px;">
+  <h1 style="color: #1f1f1f;">주택용 전기요금 계산기</h1>
+  <div style="margin: 10px 0 20px 0; border-radius: 10px; background-color: #eeeeee; padding: 15px 20px; font-size: 14px; color: #3f3f3f; display: flex; flex-direction: column; gap: 5px;">
+    <span>· 청구연월 2017년 1월 이후부터 계산 가능합니다.</span>
+    <span>· 보장공제, 복지할인 등은 반영하지 않습니다.</span>
+    <span>· 청구연월과 검침일로 사용기간 파악하기 : 1일과 말일(30일)의 차이만 기억하세요!</span>
+    <span>① 검침일 1일 + 청구연월 202302 : 사용기간 23년 1월 1일 ~ 1월 31일</span>
+    <span>② 검침일 30일 + 청구연월 202301 : 사용기간 23년 1월 1일 ~ 1월 31일</span>
+    <span>③ 검침일 26일 + 청구연월 202302 : 사용기간 23년 1월 26일 ~ 2월 25일</span>
+  </div>
   <div style="display: flex; flex-direction: column;">
     <label for="yyyymm">
       <span>청구연월</span>
@@ -18,7 +27,7 @@
       <input style="color: #1f1f1f" id="meterDate" type="number" placeholder="5" value="5" />
     </label>
     <label for="contractType">
-      <span>저압고압</span>
+      <span>저압고압여부</span>
       <select style="color: #1f1f1f" id="contractType">
         <option value="low" selected>저압</option>
         <option value="high">고압</option>
@@ -44,7 +53,7 @@
   <hr />
   <div>
     <label>전력량요금</label>
-    <span style="color: #0067ed" id="energy-charge"></span>
+    <span style="color: #db0b00" id="energy-charge"></span>
   </div>
   <span style="font-size: 14px; color: #777777;">청구연월 201701부터 반영 [2016.12 누진 3단계 적용]</span>
   <hr />
@@ -66,33 +75,38 @@
   </div>
   <hr />
   <div>
+    <label>부가가치세</label>
+    <span style="color: #0067ed" id="vat"></span>
+  </div>
+  <span style="font-size: 14px; color: #777777;">상기 전기요금에서 10% 부과</span>
+  <hr />
+  <div>
+    <label>전력기금</label>
+    <span style="color: #0067ed" id="power-fund"></span>
+  </div>
+  <span style="font-size: 14px; color: #777777;">상기 전기요금에서 3.7% 부과</span>
+  <hr />
+  <div>
+    <label>총전기요금</label>
+    <span style="color: #0067ed" id="total-elec-charge"></span>
+  </div>
+  <hr />
+  <div>
     <label>전력소비량(역산)</label>
     <span style="color: #db0b00" id="energy-charge-backward"></span>
   </div>
   <span style="font-size: 14px; color: #777777;">부가세, 전력기금, 보장공제(해당기간) 제외</span>
-  <p style="margin-top: 10px; border-radius: 10px; background-color: #eeeeee; padding: 15px 20px; font-size: 14px; line-height: 1.5;">
-    · 청구연월 201612 말일검침(30일)부터 계산 가능
-    <br /> 
-    · 검침일 1일 + 청구연월 202302 : 사용기간 23년 1월 1일 ~ 1월 31일
-    <br />
-    · 검침일 30일 + 청구연월 202301 : 사용기간 23년 1월 1일 ~ 1월 31일
-    <br />
-    · 검침일 26일 + 청구연월 202302 : 사용기간 23년 1월 26일 ~ 2월 25일
-    <br />
-    · (230519) 전력량요금으로 전력소비량 역산 구현
-    <br />
-    · (230607) 230516~230531 월중 전력량요금 상승에 따른 값 보정 완료 (오차 0~5원)
-    <br />
-    · (230607) 230516~230531 포함된 전력량요금에 대한 역산 보정은 미적용
-  </p>
 </body>
 <script>
-  const [result1, result2, result3, result4, result5, result6] = [
+  const [result1, result2, result3, result4, result5, result6, result7, result8, result9] = [
     document.getElementById('demand-charge'),
     document.getElementById('energy-charge'),
     document.getElementById('climate-charge'),
     document.getElementById('fuel-charge'),
     document.getElementById('elec-charge'),
+    document.getElementById('vat'),
+    document.getElementById('power-fund'),
+    document.getElementById('total-elec-charge'),
     document.getElementById('energy-charge-backward'),
   ]
   function getResult(yyyymm, meterDate, contractType, kWh, energyCharge) {
@@ -102,8 +116,11 @@
       result3.innerText = calcClimateCharge(yyyymm, meterDate, kWh).toLocaleString('ko-kr') + "원";
       result4.innerText = calcFuelCharge(yyyymm, meterDate, kWh).toLocaleString('ko-kr') + "원";
       result5.innerText = calcElecCharge(yyyymm, meterDate, contractType, kWh).toLocaleString('ko-kr') + "원";
+      result6.innerText = calcVat(yyyymm, meterDate, contractType, kWh).toLocaleString('ko-kr') + "원";
+      result7.innerText = calcPowerFund(yyyymm, meterDate, contractType, kWh).toLocaleString('ko-kr') + "원";
+      result8.innerText = calcTotalElecCharge(yyyymm, meterDate, contractType, kWh).toLocaleString('ko-kr') + "원";
     } else if(kWh == 0) {
-      result6.innerText = calcConsumption(yyyymm, meterDate, contractType, energyCharge).toLocaleString('ko-kr') + "㎾h";
+      result9.innerText = calcConsumption(yyyymm, meterDate, contractType, energyCharge).toLocaleString('ko-kr') + "㎾h";
     }
   }
   let [val1, val2, val3, val4] = [1, 2, 3, 4, 5];

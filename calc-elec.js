@@ -622,3 +622,15 @@ function calcConsumption(yyyymm, meterDate, contractType, energyCharge) {
     : Math.ceil((energyCharge - (targetSum200 + targetSum300 + targetSum400 + targetSum450 + targetSum1000)) / actualChargeOver1000) + 1000
   ;
 }
+
+function calcVat(yyyymm, meterDate, contractType, kWh) {
+  return Math.floor(calcElecCharge(yyyymm, meterDate, contractType, kWh) * 0.1);
+}
+
+function calcPowerFund(yyyymm, meterDate, contractType, kWh) {
+  return Math.floor(calcElecCharge(yyyymm, meterDate, contractType, kWh) * 0.037);
+}
+
+function calcTotalElecCharge(yyyymm, meterDate, contractType, kWh) {
+  return calcElecCharge(yyyymm, meterDate, contractType, kWh) + calcVat(yyyymm, meterDate, contractType, kWh) + calcPowerFund(yyyymm, meterDate, contractType, kWh);
+}
