@@ -6,9 +6,26 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>전기요금 계산기 [주택용]</title>
   <link rel="icon" href="./favicon-myenergy.ico" type="image/x-icon">
+  <style>
+    input, select {
+      font-size: 14px;
+      padding: 5px 10px;
+      border: solid 1px #cacaca;
+      outline: none;
+    }
+    label {
+      margin-bottom: 5px;
+    }
+
+    hr {
+      background: #cacaca;
+      height: 1px;
+      border: 0;
+    }
+  </style>
 </head>
-<body style="margin: 20px;">
-  <h1 style="color: #1f1f1f;">주택용 전기요금 계산기</h1>
+<body style="margin: 20px; min-width: 600px;">
+  <h1 style="color: #1f1f1f; font-size: 24px;">주택용 전기요금 계산기</h1>
   <div style="margin: 10px 0 20px 0; border-radius: 10px; background-color: #eeeeee; padding: 15px 20px; font-size: 14px; color: #3f3f3f; display: flex; flex-direction: column; gap: 5px;">
     <span>· 청구연월 2017년 1월 이후부터 계산 가능합니다.</span>
     <span>· 보장공제, 복지할인 등은 반영하지 않습니다.</span>
@@ -33,17 +50,34 @@
         <option value="high">고압</option>
       </select>
     </label>
-    <label for="kWh">
-      <span>전력소비량</span>
-      <input style="color: #0067ed" id="kWh" type="number" value="420" />
-    </label>
-    <label for="backward-calculation">
-      <span>전력량요금(역산)</span>
-      <input style="color: #db0b00" id="backward-calculation" type="number" />
-    </label>
+    <div style="display: flex; gap: 10px;">
+      <label for="kWh">
+        <span style="color: #0067ed;">전력소비량</span>
+        <input style="color: #0067ed" id="kWh" type="number" value="420" />
+      </label>
+      <label for="backward-calculation">
+        <span style="color: #db0b00;">전력량요금</span>
+        <input style="color: #db0b00" id="backward-calculation" type="number" />
+      </label>
+    </div>
+    <span style="font-size: 14px; color: #777777;">전력소비량을 입력하고 전기요금을 계산한 뒤, 전력량요금을 입력하여 전력소비량을 역산할 수 있습니다.</span>
     <div style="display: flex; gap: 20px;">
-      <button style="width: calc(50% - 10px); font-size: 16px; margin-top: 10px; padding: 10px;" onclick="getValue1()">계산</button>
-      <button style="width: calc(50% - 10px); font-size: 16px; margin-top: 10px; padding: 10px;" onclick="getValue2()">역산</button>
+      <button
+        style="width: calc(50% - 10px); font-size: 16px; margin-top: 10px; padding: 10px;
+          color: #0067ed; border: solid 1px #0067ed; background-color: #0067ed10; cursor: pointer;
+        "
+        onclick="getValue1()"
+      >
+        전기요금 계산
+      </button>
+      <button
+        style="width: calc(50% - 10px); font-size: 16px; margin-top: 10px; padding: 10px;
+          color: #db0b00; border: solid 1px #db0b00; background-color: #db0b0010; cursor: pointer;
+        "
+        onclick="getValue2()"
+      >
+        전력소비량 역산
+      </button>
     </div>
   </div>
   <div style="margin-top: 10px;">
@@ -55,7 +89,6 @@
     <label>전력량요금</label>
     <span style="color: #db0b00" id="energy-charge"></span>
   </div>
-  <span style="font-size: 14px; color: #777777;">청구연월 201701부터 반영 [2016.12 누진 3단계 적용]</span>
   <hr />
   <div>
     <label>기후환경요금</label>
@@ -87,7 +120,7 @@
   <span style="font-size: 14px; color: #777777;">상기 전기요금에서 3.7% 부과</span>
   <hr />
   <div>
-    <label>총전기요금</label>
+    <label>총 전기요금</label>
     <span style="color: #0067ed" id="total-elec-charge"></span>
   </div>
   <hr />
@@ -95,7 +128,7 @@
     <label>전력소비량(역산)</label>
     <span style="color: #db0b00" id="energy-charge-backward"></span>
   </div>
-  <span style="font-size: 14px; color: #777777;">부가세, 전력기금, 보장공제(해당기간) 제외</span>
+  <span style="font-size: 14px; color: #777777;">실제 전력소비량과 1㎾h 정도 차이날 수 있습니다.</span>
 </body>
 <script>
   const [result1, result2, result3, result4, result5, result6, result7, result8, result9] = [
