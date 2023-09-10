@@ -624,13 +624,19 @@ function calcConsumption(yyyymm, meterDate, contractType, energyCharge) {
 }
 
 function calcVat(yyyymm, meterDate, contractType, kWh) {
-  return Math.floor(calcElecCharge(yyyymm, meterDate, contractType, kWh) * 0.1);
+  return Math.round(calcElecCharge(yyyymm, meterDate, contractType, kWh) * 0.1);
 }
 
 function calcPowerFund(yyyymm, meterDate, contractType, kWh) {
-  return Math.floor(calcElecCharge(yyyymm, meterDate, contractType, kWh) * 0.037);
+  return Math.floor((calcElecCharge(yyyymm, meterDate, contractType, kWh) * 0.037) / 10) * 10;
 }
 
 function calcTotalElecCharge(yyyymm, meterDate, contractType, kWh) {
-  return calcElecCharge(yyyymm, meterDate, contractType, kWh) + calcVat(yyyymm, meterDate, contractType, kWh) + calcPowerFund(yyyymm, meterDate, contractType, kWh);
+  return Math.floor(
+    (
+      calcElecCharge(yyyymm, meterDate, contractType, kWh)
+      + calcVat(yyyymm, meterDate, contractType, kWh)
+      + calcPowerFund(yyyymm, meterDate, contractType, kWh)
+    ) / 10
+  ) * 10;
 }
